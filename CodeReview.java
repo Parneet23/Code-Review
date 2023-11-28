@@ -56,7 +56,7 @@ public class CodeReview {
 					break;
 				}
 			}
-			freqObject.updatedScore += (count/(Math.max(projectPathTokens.length, pathTokens.length)));
+			freqObject.updatedScore += count;
 		}
 	}
 	 //Calculating longest common prefix by passing Map and string, where we will iterate all entries of map and compare with the string
@@ -73,7 +73,7 @@ public class CodeReview {
 					break;
 				}
 			}
-			freqObject.updatedScore += (count/(Math.max(projectPathTokens.length, pathTokens.length)));
+			freqObject.updatedScore += count;
 			}
 	}
     //getter for returning the value of updated score as it will be required when we will be sorting the map based on updatedScore in descending order
@@ -109,7 +109,7 @@ public class CodeReview {
 			String projectPathTokens[] = freqObject.projectPath.split("/");
 			String pathTokens[] = path.split("/");
 			int count = LCSubstr(projectPathTokens, pathTokens);
-			freqObject.updatedScore += (count/(Math.max(projectPathTokens.length, pathTokens.length)));
+			freqObject.updatedScore += count;
 		}
 	}
 	 //Calculating longest common subsequence by passing Map and string, where we will iterate all entries of map and compare with the string
@@ -118,20 +118,28 @@ public class CodeReview {
 			String projectPathTokens[] = freqObject.projectPath.split("/");
 			String pathTokens[] = path.split("/");
 			int count = LCS(projectPathTokens, pathTokens, 0, 0);
-			freqObject.updatedScore += (count/(Math.max(projectPathTokens.length, pathTokens.length)));
+			freqObject.updatedScore += count;
+		}
+	}
+	public void cleanDict() {
+		for (CodeReview freqObject : dict.values()) {
+			freqObject.updatedScore = 0;
 		}
 	}
     //Iterating map and storing value in list, sorting based on updated score and then printing top 10 values which have high value of updated score
-	public void printDict() throws IOException {
+	public void printDict(String line) throws IOException {
 		// Convert the values of the dictionary to a list
 		List<CodeReview> reviewList = new ArrayList<>(dict.values());
-
+		for (CodeReview freqObject : dict.values()) {
+			freqObject.updatedScore %= Math.max(line.length(), freqObject.projectPath.length());
+		}
 		// Sort the list by updatedScore in descending order
 		reviewList.sort(Comparator.comparingInt(CodeReview::getUpdatedScore).reversed());
 		String outFile = "F:\\University\\Semester1\\SE\\Project\\count.txt";
-		BufferedWriter bw = new BufferedWriter(new FileWriter(outFile));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outFile,true));
 		String output = "";
 		// Print the sorted list
+		output += "For the following path " + line + " these can be the reviewers:\n";
 		int i=0;
 		for (CodeReview freqObject : reviewList) {
 			if(i < 10) {
@@ -143,6 +151,7 @@ public class CodeReview {
 			else
 				break;
 		}
+		output += "\n";
 		bw.write(output);
 		bw.close();
 
@@ -178,13 +187,25 @@ public class CodeReview {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		review.LongestCommonPrefix(review.dict, "platform/build");
-		review.LongestCommonSuffix(review.dict, "platform/build");
-		review.LongestCommonSubsequence(review.dict, "platform/build");
-		review.LongestCommonSubstring(review.dict, "platform/build");
-		review.printDict();
-
+	 	line="";
+	 
+		int j=0;
+		try (BufferedReader br = new BufferedReader(new FileReader(
+				new File("F:\\University\\Semester1\\SE\\Project\\input.txt")))) {
+			while ((line = br.readLine()) != null) {
+				System.out.println(j);
+				j++;
+				review.cleanDict();
+				review.LongestCommonPrefix(review.dict, line);
+				review.LongestCommonSuffix(review.dict, line);
+				review.LongestCommonSubsequence(review.dict, line);
+				review.LongestCommonSubstring(review.dict, line);
+				System.out.println(line + " inside main");
+				review.printDict(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
